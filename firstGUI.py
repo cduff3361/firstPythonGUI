@@ -1,4 +1,5 @@
 from tkinter import *
+import csv
 
 master = Tk()
 Label(master, text='First Name').grid(row=0)
@@ -13,11 +14,17 @@ last.grid(row=2, column=1)
 
 
 def saveInput():
-    OutputFirst.insert(END, first.get() + ' ' + middle.get() + ' ' + last.get())
+    firstval = first.get()
+    middleval = middle.get()
+    lastval = last.get()
+    OutputFirst.insert(END, firstval + ' ' + middleval + ' ' + lastval)
+    with open('profiles1.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        field = ["FIRST", "MIDDLE", "LAST"]
+        
+        writer.writerow(field)
+        writer.writerow([firstval, middleval, lastval])
 
-
-#e1val = e1.get()
-#e2val = e2.get()
 
 #ms = Message(master, text=e1val)
 #ms.grid(row=0, column=2)
@@ -39,3 +46,5 @@ Display.grid(row=1,column=2)
 
 
 mainloop()
+
+
