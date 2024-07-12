@@ -2,13 +2,14 @@ from tkinter import *
 from tkinter import ttk
 import csv
 from profile import Profile
-
+from expense import *
 
 
 master = Tk()
 master.title("Personal Finance Tracker")
 master.geometry("500x280")
 mainProfile = Profile()
+monthlyExpenseList = ExpenseList()
 
 tabControl = ttk.Notebook(master)
 userInfo_t = ttk.Frame(tabControl)
@@ -123,7 +124,9 @@ def loadProfile():
         OutputFirst.configure(text = mainProfile.getFirstName())
         OutputMiddle.configure(text = mainProfile.getMiddleName())
         OutputLast.configure(text = mainProfile.getLastName())
-        OutputMonBud.configure(text = mainProfile.getMonBud())            
+        OutputMonBud.configure(text = mainProfile.getMonBud()) 
+    monthlyExpenseList.loadMonthlyExpense()
+    print(monthlyExpenseList.expenseList[0].expense + ',' + monthlyExpenseList.expenseList[0].amount)
 
 
 menu = Menu(master)
