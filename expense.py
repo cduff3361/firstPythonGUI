@@ -52,7 +52,7 @@ class ExpenseList:
         self.expenseList = []
         self.fileLoaded = False
         self.expenseFrame = frame
-        self.addExpenseButton = Button(frame, height = 1, width = 20, text = "Add Expense", command=lambda:self.addExpenseClicked())
+        self.addExpenseButton = Button(frame, height = 1, width = 20, text = "Add Expense",command=lambda:self.addExpenseClicked())
         self.addButtonIndex = 1 #Index in grid for the Add Expense button
         self.addExpenseButton.grid(row = self.addButtonIndex, column = 0)
         self.addExpenseButton.config(state="disabled") #Grey out the button until the profile is loaded by the user
@@ -72,18 +72,62 @@ class ExpenseList:
           row = 5, padx = 10, pady = 25) 
         ###Load the users profile into the GUI
         n = StringVar() 
-        expenseChosen = ttk.Combobox(window, width = 27, textvariable = n)
+        comboBoxVals = []
+        
+        
+        
+        for expenses in self.expenseList:
+            comboBoxVals.append(expenses.expense)
+        expenseChosen = ttk.Combobox(editWin, width = 27, textvariable = n, values = comboBoxVals)
+        expenseChosen.grid(column=1, row =5)
+        confirmButton = Button(editWin, height = 1, width = 20, text = "Delete Expense", command=lambda:self.confirmClicked(expenseChosen.get(), editWin))
+        confirmButton.grid(column = 1, row = 10)
+        
+    def confirmClicked(self, expense, window:Toplevel):
+        if expense != -1:
+            counter = 0
+            for i in self.expenseList:
+                if i.expense == expense:
+                    del self.expenseList[counter]
+                    self.saveMonthlyExpenses()
+                    self.clear_frame()
+                    self.loadMonthlyExpense()
+                    window.destroy()
+                    
+                    return
+                else:
+                    counter +=1
+            self.saveMonthlyExpenses()
+        print("ARE YOU SURE")
+    def clear_frame(self):
+        #widgetList = self.expenseFrame.winfo_children();
+        #print(widgetList[0:-1])
+        for widgets in self.expenseFrame.winfo_children():
+            print(widgets._name)
+            if widgets._name != self.addExpenseButton._name and widgets._name != self.deleteButton._name:
+                widgets.destroy() 
+                print("Hello")
+            ###NEED TO UPDATE THE ADD BUTTON INDEX
+        
+            
         
     def loadMonthlyExpense(self):
         rowCounter = 1
         counter = 0
+        self.addButtonIndex = 1
+        if self.fileLoaded == TRUE:
+            Label(self.expenseFrame, text = 'Monthly Expense', width = 20, bg = 'yellow').grid(row=0, column=0)
+            Label(self.expenseFrame, text = 'Amount Due ($)', width = 20, bg = 'yellow').grid(row=0,column=1)
+            Label(self.expenseFrame, text = 'Day of Month Due', width = 20, bg = 'yellow').grid(row=0,column=2)
+            Label(self.expenseFrame, text = 'Yearly Cost ($)', width = 20, bg = 'yellow').grid(row=0,column=3)
         with open('monthlyExpenses.csv', 'r') as file:
             next(file)
             reader = csv.reader(file, delimiter=',')
             for line in reader:
                 print(counter)
                 counter += 1
-                self.expenseList.append(MonthlyExpense(line[0],line[1],line[2], rowCounter, self.expenseFrame))
+                if self.fileLoaded == FALSE:
+                    self.expenseList.append(MonthlyExpense(line[0],line[1],line[2], rowCounter, self.expenseFrame))
                 for i in range(0,4):
                     message = Message(self.expenseFrame, width = 100, text = line[i])
                     message.grid(row = rowCounter, column = i)
@@ -142,6 +186,7 @@ class ExpenseList:
         newExpense = MonthlyExpense(expense, amount, date, self.addButtonIndex-1, self.expenseFrame)
         self.expenseList.append(newExpense)
         self.addExpenseButton.grid(row=self.addButtonIndex, column = 0)
+        self.deleteButton.grid(row = self.addButtonIndex, column = 1)
         expenseMes = Message(self.expenseFrame, width = 100, text = expense)
         expenseMes.grid(row = self.addButtonIndex - 1, column = 0)
         amountMes = Message(self.expenseFrame, width = 100, text = amount)
