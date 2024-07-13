@@ -9,13 +9,14 @@ master = Tk()
 master.title("Personal Finance Tracker")
 master.geometry("500x280")
 mainProfile = Profile()
-monthlyExpenseList = ExpenseList()
+
 
 tabControl = ttk.Notebook(master)
 userInfo_t = ttk.Frame(tabControl)
-monExp = ttk.Frame(tabControl)
+monExp_t = ttk.Frame(tabControl)
 tabControl.add(userInfo_t, text='User Info')
-tabControl.add(monExp, text='Monthly Expenses')
+tabControl.add(monExp_t, text='Monthly Expenses')
+monthlyExpenseList = ExpenseList(monExp_t, master)
 
 tabControl.pack(expand=1, fill="both")
 userInfo_t.rowconfigure(0, minsize = 20)
@@ -28,6 +29,11 @@ Label(userInfo_t, text='First Name:').grid(row=1)
 Label(userInfo_t, text='Last Name:').grid(row=3)
 Label(userInfo_t, text='Middle Name:').grid(row=2)
 Label(userInfo_t, text='Monthly Budget: $').grid(row=5, column=0)
+
+Label(monExp_t, text = 'Monthly Expense', width = 20, bg = 'yellow').grid(row=0, column=0)
+Label(monExp_t, text = 'Amount Due ($)', width = 20, bg = 'yellow').grid(row=0,column=1)
+Label(monExp_t, text = 'Day of Month Due', width = 20, bg = 'yellow').grid(row=0,column=2)
+Label(monExp_t, text = 'Yearly Cost ($)', width = 20, bg = 'yellow').grid(row=0,column=3)
 
 
 
@@ -126,7 +132,7 @@ def loadProfile():
         OutputLast.configure(text = mainProfile.getLastName())
         OutputMonBud.configure(text = mainProfile.getMonBud()) 
     monthlyExpenseList.loadMonthlyExpense()
-    print(monthlyExpenseList.expenseList[0].expense + ',' + monthlyExpenseList.expenseList[0].amount)
+    #print(monthlyExpenseList.expenseList[0].expense + ',' + monthlyExpenseList.expenseList[0].amount)
 
 
 menu = Menu(master)
@@ -139,6 +145,10 @@ filemenu.add_separator()
 filemenu.add_command(label='Exit', command=master.quit)
 helpmenu = Menu(menu)
 menu.add_cascade(label='Help', menu=helpmenu)
+
+#monthlyExpenseList.loadMonthlyExpense()
+#monthlyExpenseList.addMonthlyExpense("Rent", 1100, 1)
+#monthlyExpenseList.saveMonthlyExpenses()
 
 
 
