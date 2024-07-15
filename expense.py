@@ -2,33 +2,35 @@ import csv
 from tkinter import ttk
 from tkinter import *
 
-'''def createSaveButtonForExpense(frame:ttk.Frame, expense:MonthlyExpense, buttonRow):
-    SaveButton = Button(frame, height = 1,
-                 width = 10, 
-                 text ="Clear All",
-                 command = lambda:expense.updateExpense())
-    SaveButton.grid(row=buttonRow,column=5)'''
 
 
+"""
+class MonthlyExpense 
 
-
+Monthly expense defined by a user that has the following:
+    Expense Name
+    Expense Amount 
+    Day of the month the expense is due
+    Total yearly cost
+"""
 class MonthlyExpense:
     
-    def __init__(self, expenseName, amount, monthlyDueDate, buttonIndex, frame:ttk.Frame):
+    def __init__(self,expenseName,amount,monthlyDueDate,buttonIndex,frame:ttk.Frame):
         self.expense = expenseName
         self.amount = int(amount) 
         self.monDueDate = monthlyDueDate
         self.yearlyCost = int(amount) * 12
+        #Associated edit button for each expense 
         self.editButton = Button(frame, height = 1,
                  width = 10, 
                  text ="Edit",
                  command = lambda:self.updateExpense())
         self.editButton.grid(row = buttonIndex, column = 5)
         self.buttonIndex = buttonIndex #Create associated "Edit" button for each expense entry 
-        self.deleteButton = Button(frame, height = 1,
+        '''self.deleteButton = Button(frame, height = 1,
                  width = 10, 
                  text ="Delete",
-                 command = lambda:deleteAndUpdate())
+                 command = lambda:deleteAndUpdate())'''
         self.editButton.grid(row = buttonIndex, column = 6) 
     def changeExpenseName(self, newName):
         self.expense = newName
@@ -45,7 +47,9 @@ class MonthlyExpense:
                
         
 
-
+"""
+ExpenseList is a list of expenses. Also handles deleting expenses and adding expenses in the monthly expense tab/frame
+"""
 class ExpenseList:
     
     def __init__(self, frame:ttk.Frame, master:Tk):
@@ -61,7 +65,10 @@ class ExpenseList:
         self.deleteButton.grid(row = self.addButtonIndex, column = 1)
         self.deleteButton.config(state="disabled") #Grey out the button until the profile is loaded by the user
         
-        
+    """
+    deleteClicked handles when the delete button is clicked. The result is a pop up window with a combobox to select which 
+    monthly expense to delete. 
+    """
     def deleteClicked(self):
         print("DELETING!!!!")
         editWin = Toplevel(self.masterWindow)
@@ -83,6 +90,18 @@ class ExpenseList:
         confirmButton = Button(editWin, height = 1, width = 20, text = "Delete Expense", command=lambda:self.confirmClicked(expenseChosen.get(), editWin))
         confirmButton.grid(column = 1, row = 10)
         
+    """
+    confirmClicked takes two arguments:
+        expense - the the name of the expense chosen
+        window - pop up window object 
+        
+    This method takes action when the user selects and then confirms the deletion of a monthly expense. The following occurs once confirmed:
+        -Deletes the expense from the list 
+        -Saves the new list to the csv
+        -Clears the frame
+        -Updates the frame with (now) one less monthly expense 
+        -Destroys the pop up window 
+    """
     def confirmClicked(self, expense, window:Toplevel):
         if expense != -1:
             counter = 0
@@ -99,23 +118,29 @@ class ExpenseList:
                     counter +=1
             self.saveMonthlyExpenses()
         print("ARE YOU SURE")
+        
+        
+    """
+    clear_frame clears all widgets from the monthly expense frame besides the add expense button and the delete button.
+    """
     def clear_frame(self):
         #widgetList = self.expenseFrame.winfo_children();
         #print(widgetList[0:-1])
         for widgets in self.expenseFrame.winfo_children():
-            print(widgets._name)
+            #print(widgets._name)
             if widgets._name != self.addExpenseButton._name and widgets._name != self.deleteButton._name:
                 widgets.destroy() 
-                print("Hello")
-            ###NEED TO UPDATE THE ADD BUTTON INDEX
+
         
             
-        
+    """
+    loadMonthlyExpenses loads the csv file with monthly expenses and displays each into the monthly expense frame.
+    """
     def loadMonthlyExpense(self):
         rowCounter = 1
         counter = 0
         self.addButtonIndex = 1
-        if self.fileLoaded == TRUE:
+        if self.fileLoaded == TRUE: #Need to rewrite the header after deleting expenses since the window gets cleared
             Label(self.expenseFrame, text = 'Monthly Expense', width = 20, bg = 'yellow').grid(row=0, column=0)
             Label(self.expenseFrame, text = 'Amount Due ($)', width = 20, bg = 'yellow').grid(row=0,column=1)
             Label(self.expenseFrame, text = 'Day of Month Due', width = 20, bg = 'yellow').grid(row=0,column=2)
@@ -124,7 +149,6 @@ class ExpenseList:
             next(file)
             reader = csv.reader(file, delimiter=',')
             for line in reader:
-                print(counter)
                 counter += 1
                 if self.fileLoaded == FALSE:
                     self.expenseList.append(MonthlyExpense(line[0],line[1],line[2], rowCounter, self.expenseFrame))
@@ -132,8 +156,7 @@ class ExpenseList:
                     message = Message(self.expenseFrame, width = 100, text = line[i])
                     message.grid(row = rowCounter, column = i)
                 
-                rowCounter += 1
-                print("check")
+                rowCounter += 1 #Update the row for the grid in the frame               
 
         self.addButtonIndex = rowCounter
         self.addExpenseButton.grid(row=self.addButtonIndex, column = 0)
@@ -143,7 +166,10 @@ class ExpenseList:
             
         self.fileLoaded = True
 
-        ### Action taken when the "Add Expense" button is clicked
+    """
+    addExpenseClicked is the action taken when the "Add Expense" button is clicked:
+        -Pops up a window for the user to input information about the new expense. 
+    """
     def addExpenseClicked(self):
         editWin = Toplevel(self.masterWindow)
         editWin.title("Add Monthly Expense")
@@ -165,10 +191,13 @@ class ExpenseList:
                      command = lambda:self.addMonthlyExpense(expense.get(), amount.get(), date.get()))
         Display.grid(row=9,column=2)
         
-        ###Saves CSV file with the list of expenses
+     
+    """
+    saveMonthlyExpenses saves CSV file with the list of expenses
+    """
     def saveMonthlyExpenses(self):
         counter = 0
-        if self.fileLoaded == False:
+        if self.fileLoaded == False: #Don't save anything until the user has loaded their profile
             return 0
         with open('monthlyExpenses.csv', 'w', newline='') as file:
             writer = csv.writer(file)
@@ -179,7 +208,9 @@ class ExpenseList:
                 writer.writerow([i.expense, i.amount, i.monDueDate, i.yearlyCost])
         return 1
     
-        ###Adds monthly expense to the list, adds an entry in the Monthly Expenses tab, and outputs to/resaves the csv file
+    """
+    addMonthlyExpense adds a monthly expense to the list, adds an entry in the Monthly Expenses tab, and outputs to/resaves the csv file
+    """
     def addMonthlyExpense(self, expense, amount, date):
 
         self.addButtonIndex += 1
@@ -197,16 +228,3 @@ class ExpenseList:
         yearlyMes.grid(row = self.addButtonIndex - 1, column = 3)
         self.saveMonthlyExpenses()
         
-'''class ExpenseWindow:
-    def __init__(self, window:'''
-                
-'''testExpense = ExpenseList()
-testExpense.loadMonthlyExpense()
-#print(testExpense.expenseList[0].expense)
-#newExpense = MonthlyExpense("Health Insurance", 200, 1)
-#testExpense.addMonthlyExpense("Health Insurance", 200, 1)
-#testExpense.saveMonthlyExpenses()
-print(testExpense.expenseList[0].expense)   
-testExpense.addMonthlyExpense("Rent", 1100, 1)
-testExpense.saveMonthlyExpenses()
-print(testExpense.expenseList[2].expense)   '''

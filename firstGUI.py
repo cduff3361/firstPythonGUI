@@ -9,7 +9,7 @@ master = Tk()
 master.title("Personal Finance Tracker")
 master.geometry("500x280")
 mainProfile = Profile()
-
+profileLoaded = False
 
 tabControl = ttk.Notebook(master)
 userInfo_t = ttk.Frame(tabControl)
@@ -86,6 +86,7 @@ ClearButton = Button(userInfo_t, height = 1,
                  text ="Clear All",
                  command = lambda:clearInput())
 ClearButton.grid(row=10,column=2)
+ClearButton.config(state="disabled") #Don't let the profile be cleared unless user is loaded
 
 
 def editProfile():
@@ -119,6 +120,7 @@ EditButton = Button(userInfo_t, height = 1,
                  text ="Edit Profile",
                  command = lambda:editProfile())
 EditButton.grid(row=9,column=1)
+EditButton.config(state="disabled")
 
 
 def loadProfile():
@@ -132,6 +134,8 @@ def loadProfile():
         OutputLast.configure(text = mainProfile.getLastName())
         OutputMonBud.configure(text = mainProfile.getMonBud()) 
     monthlyExpenseList.loadMonthlyExpense()
+    EditButton.config(state="normal")
+    ClearButton.config(state="normal")    
     #print(monthlyExpenseList.expenseList[0].expense + ',' + monthlyExpenseList.expenseList[0].amount)
 
 
