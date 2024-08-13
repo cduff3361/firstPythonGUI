@@ -15,23 +15,25 @@ Monthly expense defined by a user that has the following:
 """
 class MonthlyExpense:
     
-    def __init__(self,expenseName,amount,monthlyDueDate,buttonIndex,frame:ttk.Frame):
+    def __init__(self,expenseName,amount,monthlyDueDate,buttonIndex,frame:ttk.Frame, master:Tk):
         self.expense = expenseName
         self.amount = int(amount) 
         self.monDueDate = monthlyDueDate
         self.yearlyCost = int(amount) * 12
+        self.masterWindow = master
         #Associated edit button for each expense 
-        self.editButton = Button(frame, height = 1,
+        '''self.editButton = Button(frame, height = 1,
                  width = 10, 
                  text ="Edit",
                  command = lambda:self.updateExpense())
         self.editButton.grid(row = buttonIndex, column = 5)
-        self.buttonIndex = buttonIndex #Create associated "Edit" button for each expense entry 
+        self.buttonIndex = buttonIndex #Create associated "Edit" button for each expense entry '''
         '''self.deleteButton = Button(frame, height = 1,
                  width = 10, 
                  text ="Delete",
                  command = lambda:deleteAndUpdate())'''
-        self.editButton.grid(row = buttonIndex, column = 6) 
+        #self.editButton.grid(row = buttonIndex, column = 6) 
+        
     def changeExpenseName(self, newName):
         self.expense = newName
 
@@ -44,6 +46,16 @@ class MonthlyExpense:
     
     def updateExpense(self):
         print("Hello Update" + self.expense)
+        editWin = Toplevel(self.masterWindow)
+        editWin.title("Edit Expense")
+        editWin.geometry("350x150")
+        Label(editWin, text = "Expense to Delete :", 
+          font = ("Times New Roman", 10)).grid(column = 0, 
+          row = 5, padx = 10, pady = 25) 
+        
+        
+    #def reloadEditButton(self):
+        
                
         
 
@@ -56,6 +68,7 @@ class ExpenseList:
         self.expenseList = []
         self.fileLoaded = False
         self.expenseFrame = frame
+        self.monthlySum = int(0)
         self.addExpenseButton = Button(frame, height = 1, width = 20, text = "Add Expense",command=lambda:self.addExpenseClicked())
         self.addButtonIndex = 1 #Index in grid for the Add Expense button
         self.addExpenseButton.grid(row = self.addButtonIndex, column = 0)
@@ -64,6 +77,10 @@ class ExpenseList:
         self.deleteButton = Button(frame, height = 1, width = 20, text = "Delete Expense", command=lambda:self.deleteClicked())
         self.deleteButton.grid(row = self.addButtonIndex, column = 1)
         self.deleteButton.config(state="disabled") #Grey out the button until the profile is loaded by the user
+        self.editButton = Button(frame, height = 1, width = 20, text = "Edit Expense", command=lambda:self.editClicked())
+        self.editButton.grid(row = self.addButtonIndex, column = 2)
+        self.editButton.config(state="disabled") #Grey out the button until the profile is loaded by the user
+        
         
     """
     deleteClicked handles when the delete button is clicked. The result is a pop up window with a combobox to select which 
@@ -130,6 +147,7 @@ class ExpenseList:
             #print(widgets._name)
             if widgets._name != self.addExpenseButton._name and widgets._name != self.deleteButton._name:
                 widgets.destroy() 
+        self.expenseList.clear()
 
         
             
@@ -140,7 +158,9 @@ class ExpenseList:
         rowCounter = 1
         counter = 0
         self.addButtonIndex = 1
-        if self.fileLoaded == TRUE: #Need to rewrite the header after deleting expenses since the window gets cleared
+        self.monthlySum = 0
+        currentAmount = 0
+        if self.fileLoaded == True: #Need to rewrite the header after deleting expenses since the window gets cleared
             Label(self.expenseFrame, text = 'Monthly Expense', width = 20, bg = 'yellow').grid(row=0, column=0)
             Label(self.expenseFrame, text = 'Amount Due ($)', width = 20, bg = 'yellow').grid(row=0,column=1)
             Label(self.expenseFrame, text = 'Day of Month Due', width = 20, bg = 'yellow').grid(row=0,column=2)
@@ -150,22 +170,62 @@ class ExpenseList:
             reader = csv.reader(file, delimiter=',')
             for line in reader:
                 counter += 1
-                if self.fileLoaded == FALSE:
-                    self.expenseList.append(MonthlyExpense(line[0],line[1],line[2], rowCounter, self.expenseFrame))
+                currentAmount = int(line[1])
+                self.monthlySum = self.monthlySum + currentAmount
+                #if self.fileLoaded == False:
+                self.expenseList.append(MonthlyExpense(line[0],line[1],line[2], rowCounter, self.expenseFrame, self.masterWindow))
                 for i in range(0,4):
                     message = Message(self.expenseFrame, width = 100, text = line[i])
                     message.grid(row = rowCounter, column = i)
+
                 
                 rowCounter += 1 #Update the row for the grid in the frame               
 
-        self.addButtonIndex = rowCounter
+        self.addButtonIndex = rowCounter+1
+        Label(self.expenseFrame, text = 'Total Monthly ($):', width = 20, bg = 'yellow').grid(row = self.addButtonIndex - 1, column = 0)
+        Label(self.expenseFrame, text = self.monthlySum, width = 20, bg = 'yellow').grid(row = self.addButtonIndex - 1, column = 1)
         self.addExpenseButton.grid(row=self.addButtonIndex, column = 0)
         self.addExpenseButton.config(state="normal") #grey out the Add Expense button once the profile is loaded
         self.deleteButton.grid(row=self.addButtonIndex, column = 1)
         self.deleteButton.config(state="normal") #grey out the Add Expense button once the profile is loaded
+        self.editButton.grid(row=self.addButtonIndex, column = 2)
+        self.editButton.config(state="normal") #grey out the Add Expense button once the profile is loaded        
             
         self.fileLoaded = True
 
+
+    def editClicked(self):
+        editWin = Toplevel(self.masterWindow)
+        editWin.title("Edit Expense")
+        editWin.geometry("350x150")
+        Label(editWin, text = "Expense to Edit :", 
+          font = ("Times New Roman", 10)).grid(column = 0, 
+          row = 5, padx = 10, pady = 25) 
+        ###Load the users profile into the GUI
+        n = StringVar() 
+        comboBoxVals = []
+        
+        
+        
+        for expenses in self.expenseList:
+            comboBoxVals.append(expenses.expense)
+        expenseChosen = ttk.Combobox(editWin, width = 27, textvariable = n, values = comboBoxVals)
+        expenseChosen.grid(column=1, row =5)
+        
+        Label(editWin, text = "Expense Name: ").grid(column = 0, row = 7, padx = 10)
+        Label(editWin, text = "Expense Amount ($): ").grid(column = 0, row = 8, padx = 10)
+        Label(editWin, text = "Expense Due Date: ").grid(column = 0, row =9, padx = 10)   
+
+        nameEdit = Entry(editWin)
+        nameEdit.grid(column = 1, row = 7)
+        nameEdit.insert(0, expenseChosen.get())
+        amountEdit = Entry(editWin).grid(column = 1, row = 8)
+        dateEdit = Entry(editWin).grid(column = 1, row = 9)
+        
+        #loadButton = Button(editWin, height = 1, width = 20, text = "vv", command =  
+        
+        confirmButton = Button(editWin, height = 1, width = 20, text = "Save Expense", command=lambda:self.confirmClicked(expenseChosen.get(), editWin))
+        confirmButton.grid(column = 1, row = 10)        
     """
     addExpenseClicked is the action taken when the "Add Expense" button is clicked:
         -Pops up a window for the user to input information about the new expense. 
